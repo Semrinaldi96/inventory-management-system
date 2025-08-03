@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Inventaris Gudang</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        /* Loading spinner */
+        .loader {
+            border-top-color: #3498db;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Language flags */
+        .flag {
+            width: 24px;
+            height: 16px;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .flag-id {
+            background-image: url('indo.png');
+        }
+        
+        .flag-cn {
+            background-image: url('china.png');
+        }
+        
+        /* Skip to content link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: #000;
+            color: #fff;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 1000;
+            border-radius: 4px;
+        }
+        
+        .skip-link:focus {
+            top: 6px;
+        }
+        
+        /* Dark theme styles */
+        .dark {
+            background-color: #111827;
+            color: #f9fafb;
+        }
+        
+        .dark .bg-white {
+            background-color: #1f2937;
+        }
+        
+        .dark .text-gray-800 {
+            color: #f9fafb;
+        }
+        
+        .dark .text-gray-600 {
+            color: #d1d5db;
+        }
+        
+        .dark .text-gray-500 {
+            color: #9ca3af;
+        }
+        
+        .dark .bg-gray-50 {
+            background-color: #1f2937;
+        }
+        
+        .dark .bg-gray-100 {
+            background-color: #1f2937;
+        }
+        
+        .dark .border {
+            border-color: #374151;
+        }
+        
+        .dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+            border-color: #374151;
+        }
+        
+        .dark .bg-blue-100 {
+            background-color: #1e3a8a;
+        }
+        
+        .dark .bg-green-100 {
+            background-color: #065f46;
+        }
+        
+        .dark .bg-red-100 {
+            background-color: #7f1d1d;
+        }
+        
+        .dark .text-blue-600 {
+            color: #93c5fd;
+        }
+        
+        .dark .text-green-600 {
+            color: #6ee7b7;
+        }
+        
+        .dark .text-red-600 {
+            color: #fca5a5;
+        }
+        
+        .dark .text-green-800 {
+            color: #6ee7b7;
+        }
+        
+        .dark .text-red-800 {
+            color: #fca5a5;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+    <a href="#mainApp" class="skip-link">Lewati ke konten utama</a>
+    <!-- Login Page -->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center bg-gray-100">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+            <div class="text-center mb-6">
+<h1 class="text-2xl font-bold text-gray-800 flex items-center justify-center"><img src="logo.jpeg" alt="Logo QM-HAPL" class="h-10 mr-2" />Gudang QM-HAPL</h1>
+                <p class="text-gray-600 mt-2" id="loginSubtitle">Silakan masuk ke akun Anda</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-4" aria-labelledby="loginSubtitle">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1" id="usernameLabel">Nama Pengguna</label>
+                    <input type="text" id="username" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="80907793" aria-describedby="usernameHelp">
+                    <div id="usernameHelp" class="hidden">Masukkan nama pengguna Anda</div>
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1" id="passwordLabel">Kata Sandi</label>
+                    <input type="password" id="password" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="80907793" aria-describedby="passwordHelp">
+                    <div id="passwordHelp" class="hidden">Masukkan kata sandi Anda</div>
+                </div>
+                <div id="loginError" class="text-red-500 text-sm hidden" role="alert" aria-live="assertive"></div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors" id="loginButton" aria-label="Masuk ke sistem">Masuk</button>
+            </form>
+            
+            <div class="mt-6 flex justify-center space-x-4">
+                <button id="langIdBtn" class="flex items-center px-3 py-1 rounded hover:bg-gray-200">
+                    <span class="flag flag-id"></span>
+                    <span>Indonesia</span>
+                </button>
+                <button id="langCnBtn" class="flex items-center px-3 py-1 rounded hover:bg-gray-200">
+                    <span class="flag flag-cn"></span>
+                    <span>中文</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App (hidden by default) -->
+    <div id="mainApp" class="container mx-auto px-4 py-8 max-w-6xl hidden">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+<h1 class="text-2xl md:text-3xl font-bold text-gray-800 flex items-center"><img src="logo.jpeg" alt="Logo QM-HAPL" class="h-10 mr-2" />Gudang QM-HAPL</h1>
+                    <p class="text-gray-600" id="inventorySubtitle">Sistem Inventaris Barang</p>
+                </div>
+                <div class="flex space-x-2">
+                    <select id="themeSelector" class="p-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Pilih tema">
+                        <option value="light" id="lightOption">Terang</option>
+                        <option value="dark" id="darkOption">Gelap</option>
+                    </select>
+                    <select id="languageSelector" class="p-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Pilih bahasa">
+                        <option value="id">Indonesia</option>
+                        <option value="cn">中文</option>
+                    </select>
+                    <button id="logoutBtn" class="p-2 rounded-full hover:bg-gray-200 transition-colors" aria-label="Keluar">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-white rounded-lg shadow p-6 animate-fadeIn">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500" id="totalItemsText">Total Barang</p>
+                            <p class="text-2xl font-bold text-gray-800" id="totalItems">0</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6 animate-fadeIn" style="animation-delay: 0.1s;">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500" id="availableItemsText">Barang Tersedia</p>
+                            <p class="text-2xl font-bold text-gray-800" id="availableItems">0</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6 animate-fadeIn" style="animation-delay: 0.2s;">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500" id="outOfStockItemsText">Barang Habis</p>
+                            <p class="text-2xl font-bold text-gray-800" id="outOfStockItems">0</p>
+                        </div>
+                        <div class="bg-red-100 p-3 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Add -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <div class="relative w-full md:w-64 mb-4 md:mb-0">
+                    <input type="text" id="searchInput" placeholder="Cari barang..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" aria-label="Cari barang">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <button id="addItemBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors" aria-label="Tambah barang baru">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <span id="addItemText">Tambah Barang</span>
+                </button>
+            </div>
+
+            <!-- Items Table -->
+            <div class="bg-white rounded-lg shadow overflow-hidden animate-fadeIn" style="animation-delay: 0.3s;">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200" role="table" aria-label="Daftar barang inventaris">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="itemNameHeader">Nama Barang</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="categoryHeader">Kategori</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="stockHeader">Stok</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="locationHeader">Lokasi</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="statusHeader">Status</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" id="actionsHeader">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody" class="bg-white divide-y divide-gray-200" aria-live="polite">
+                            <!-- Items will be loaded here -->
+                            <tr>
+                                <td colspan="6" class="px-6 py-4 text-center text-gray-500" id="loadingText">Memuat data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modal for Add/Edit -->
+        <div id="itemModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden" role="dialog" aria-labelledby="modalTitle" aria-modal="true">
+            <div class="bg-white rounded-lg w-full max-w-md mx-4 animate-fadeIn">
+                <div class="flex justify-between items-center border-b p-4">
+                    <h3 class="text-lg font-semibold text-gray-800" id="modalTitle">Tambah Barang Baru</h3>
+                    <button id="closeModalBtn" class="text-gray-400 hover:text-gray-500" aria-label="Tutup modal">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <form id="itemForm" class="p-4" aria-labelledby="modalTitle">
+                    <input type="hidden" id="itemId">
+                    <div class="mb-4">
+                        <label for="itemName" class="block text-sm font-medium text-gray-700 mb-1" id="itemNameLabel">Nama Barang *</label>
+                        <input type="text" id="itemName" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" aria-describedby="itemNameHelp">
+                        <div id="itemNameHelp" class="hidden">Masukkan nama barang</div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="itemCategory" class="block text-sm font-medium text-gray-700 mb-1" id="itemCategoryLabel">Kategori *</label>
+                        <select id="itemCategory" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" aria-describedby="itemCategoryHelp">
+                            <option value="" id="selectCategoryText">Pilih kategori</option>
+                            <option value="Elektronik" id="electronicsText">Elektronik</option>
+                            <option value="Peralatan" id="equipmentText">Peralatan</option>
+                            <option value="Bahan Baku" id="rawMaterialText">Bahan Baku</option>
+                            <option value="Furniture" id="furnitureText">Furniture</option>
+                            <option value="Lainnya" id="otherText">Lainnya</option>
+                        </select>
+                        <div id="itemCategoryHelp" class="hidden">Pilih kategori barang</div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="itemQuantity" class="block text-sm font-medium text-gray-700 mb-1" id="itemQuantityLabel">Jumlah Stok *</label>
+                        <input type="number" id="itemQuantity" required min="0" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" aria-describedby="itemQuantityHelp">
+                        <div id="itemQuantityHelp" class="hidden">Masukkan jumlah stok barang</div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="itemLocation" class="block text-sm font-medium text-gray-700 mb-1" id="itemLocationLabel">Lokasi Penyimpanan *</label>
+                        <select id="itemLocation" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" aria-describedby="itemLocationHelp">
+                            <option value="" id="selectLocationText">Pilih lokasi</option>
+                            <option value="Rak A1" id="rackA1Text">Rak A1</option>
+                            <option value="Rak A2" id="rackA2Text">Rak A2</option>
+                            <option value="Rak B1" id="rackB1Text">Rak B1</option>
+                            <option value="Rak B2" id="rackB2Text">Rak B2</option>
+                            <option value="Lantai 1" id="floor1Text">Lantai 1</option>
+                            <option value="Lantai 2" id="floor2Text">Lantai 2</option>
+                        </select>
+                        <div id="itemLocationHelp" class="hidden">Pilih lokasi penyimpanan barang</div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="itemDescription" class="block text-sm font-medium text-gray-700 mb-1" id="itemDescriptionLabel">Deskripsi (Opsional)</label>
+                        <textarea id="itemDescription" rows="2" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" aria-describedby="itemDescriptionHelp"></textarea>
+                        <div id="itemDescriptionHelp" class="hidden">Masukkan deskripsi barang (opsional)</div>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="cancelModalBtn" class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100 transition-colors" id="cancelText" aria-label="Batal">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" id="saveText" aria-label="Simpan barang">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div id="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden" role="dialog" aria-labelledby="deleteConfirmTitle" aria-modal="true">
+            <div class="bg-white rounded-lg w-full max-w-md mx-4 animate-fadeIn">
+                <div class="p-6">
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="bg-red-100 p-3 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-center text-gray-800 mb-2" id="deleteConfirmTitle">Hapus Barang?</h3>
+                    <p class="text-center text-gray-600 mb-6" id="deleteConfirmText">Apakah Anda yakin ingin menghapus barang ini? Tindakan ini tidak dapat dibatalkan.</p>
+                    <div class="flex justify-center space-x-4">
+                        <button id="cancelDeleteBtn" class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100 transition-colors" id="cancelDeleteText" aria-label="Batal hapus">Batal</button>
+                        <button id="confirmDeleteBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" id="confirmDeleteText" aria-label="Konfirmasi hapus">Hapus</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 px-6 py-3 bg-gray-800 text-white rounded-lg shadow-lg hidden flex items-center animate-fadeIn max-w-xs" role="alert" aria-live="assertive" aria-atomic="true">
+        <span id="toastMessage">Pesan notifikasi</span>
+        <button id="closeToastBtn" class="ml-4 text-gray-300 hover:text-white" aria-label="Tutup notifikasi">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:3000/api';
+        
+        // Sample data (will be replaced with data from API)
+        let items = [];
+
+        // Language translations
+        const translations = {
+            id: {
+                loginSubtitle: "Silakan masuk ke akun Anda",
+                usernameLabel: "Nama Pengguna",
+                passwordLabel: "Kata Sandi",
+                loginButton: "Masuk",
+                inventorySubtitle: "Sistem Inventaris Barang",
+                totalItemsText: "Total Barang",
+                availableItemsText: "Barang Tersedia",
+                outOfStockItemsText: "Barang Habis",
+                addItemText: "Tambah Barang",
+                itemNameHeader: "Nama Barang",
+                categoryHeader: "Kategori",
+                stockHeader: "Stok",
+                locationHeader: "Lokasi",
+                statusHeader: "Status",
+                actionsHeader: "Aksi",
+                loadingText: "Memuat data...",
+                modalTitle: "Tambah Barang Baru",
+                itemNameLabel: "Nama Barang *",
+                itemCategoryLabel: "Kategori *",
+                selectCategoryText: "Pilih kategori",
+                electronicsText: "Elektronik",
+                equipmentText: "Peralatan",
+                rawMaterialText: "Bahan Baku",
+                furnitureText: "Furniture",
+                otherText: "Lainnya",
+                itemQuantityLabel: "Jumlah Stok *",
+                itemLocationLabel: "Lokasi Penyimpanan *",
+                selectLocationText: "Pilih lokasi",
+                rackA1Text: "Rak A1",
+                rackA2Text: "Rak A2",
+                rackB1Text: "Rak B1",
+                rackB2Text: "Rak B2",
+                floor1Text: "Lantai 1",
+                floor2Text: "Lantai 2",
+                itemDescriptionLabel: "Deskripsi (Opsional)",
+                cancelText: "Batal",
+                saveText: "Simpan",
+                deleteConfirmTitle: "Hapus Barang?",
+                deleteConfirmText: "Apakah Anda yakin ingin menghapus barang ini? Tindakan ini tidak dapat dibatalkan.",
+                cancelDeleteText: "Batal",
+                confirmDeleteText: "Hapus",
+                lightOption: "Terang",
+                darkOption: "Gelap"
+            },
+            cn: {
+                loginSubtitle: "请登录您的账户",
+                usernameLabel: "用户名",
+                passwordLabel: "密码",
+                loginButton: "登录",
+                inventorySubtitle: "库存管理系统",
+                totalItemsText: "总商品",
+                availableItemsText: "可用品",
+                outOfStockItemsText: "缺货",
+                addItemText: "添加商品",
+                itemNameHeader: "商品名称",
+                categoryHeader: "类别",
+                stockHeader: "库存",
+                locationHeader: "位置",
+                statusHeader: "状态",
+                actionsHeader: "操作",
+                loadingText: "加载中...",
+                modalTitle: "添加新商品",
+                itemNameLabel: "商品名称 *",
+                itemCategoryLabel: "类别 *",
+                selectCategoryText: "选择类别",
+                electronicsText: "电子产品",
+                equipmentText: "设备",
+                rawMaterialText: "原材料",
+                furnitureText: "家具",
+                otherText: "其他",
+                itemQuantityLabel: "库存数量 *",
+                itemLocationLabel: "存储位置 *",
+                selectLocationText: "选择位置",
+                rackA1Text: "A1货架",
+                rackA2Text: "A2货架",
+                rackB1Text: "B1货架",
+                rackB2Text: "B2货架",
+                floor1Text: "一楼",
+                floor2Text: "二楼",
+                itemDescriptionLabel: "描述 (可选)",
+                cancelText: "取消",
+                saveText: "保存",
+                deleteConfirmTitle: "删除商品？",
+                deleteConfirmText: "您确定要删除此商品吗？此操作无法撤销。",
+                cancelDeleteText: "取消",
+                confirmDeleteText: "删除",
+                lightOption: "明亮",
+                darkOption: "黑暗"
+            }
+        };
+
+        // DOM Elements
+        const loginPage = document.getElementById('loginPage');
+        const mainApp = document.getElementById('mainApp');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const itemsTableBody = document.getElementById('itemsTableBody');
+        const totalItemsEl = document.getElementById('totalItems');
+        const availableItemsEl = document.getElementById('availableItems');
+        const outOfStockItemsEl = document.getElementById('outOfStockItems');
+        const searchInput = document.getElementById('searchInput');
+        const addItemBtn = document.getElementById('addItemBtn');
+        const itemModal = document.getElementById('itemModal');
+        const deleteModal = document.getElementById('deleteModal');
+        const itemForm = document.getElementById('itemForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        const closeToastBtn = document.getElementById('closeToastBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const themeSelector = document.getElementById('themeSelector');
+        const languageSelector = document.getElementById('languageSelector');
+        const langIdBtn = document.getElementById('langIdBtn');
+        const langCnBtn = document.getElementById('langCnBtn');
+
+        // Current item to delete
+        let currentItemToDelete = null;
+        
+        // Current language and theme
+        let currentLanguage = localStorage.getItem('language') || 'id';
+        let currentTheme = localStorage.getItem('theme') || 'light';
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial language
+            languageSelector.value = currentLanguage;
+            updateLanguage();
+            
+            // Set initial theme
+            themeSelector.value = currentTheme;
+            applyTheme();
+            
+            // Add event listeners for login
+            loginForm.addEventListener('submit', handleLogin);
+            langIdBtn.addEventListener('click', () => switchLanguage('id'));
+            langCnBtn.addEventListener('click', () => switchLanguage('cn'));
+            
+            // Add event listeners for main app
+            logoutBtn.addEventListener('click', handleLogout);
+            themeSelector.addEventListener('change', handleThemeChange);
+            languageSelector.addEventListener('change', handleLanguageChange);
+            
+            // Check if user is already logged in
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                loginPage.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                loadItemsFromAPI(); // Load items from API instead of using sample data
+            }
+        });
+
+        // Login functionality
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Check credentials (hardcoded for this example)
+            if (username === '80907793' && password === '80907793') {
+                // Save login status
+                localStorage.setItem('isLoggedIn', 'true');
+                
+                // Show main app
+                loginPage.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                
+                // Initialize main app by loading items from API
+                loadItemsFromAPI();
+            } else {
+                // Show error message
+                loginError.textContent = currentLanguage === 'id' ? 
+                    'Nama pengguna atau kata sandi salah' : 
+                    '用户名或密码错误';
+                loginError.classList.remove('hidden');
+            }
+        }
+
+        // Logout functionality
+        function handleLogout() {
+            // Clear login status
+            localStorage.removeItem('isLoggedIn');
+            
+            // Show login page
+            mainApp.classList.add('hidden');
+            loginPage.classList.remove('hidden');
+            
+            // Reset form
+            loginForm.reset();
+            loginError.classList.add('hidden');
+        }
+
+        // Theme functionality
+        function handleThemeChange() {
+            currentTheme = themeSelector.value;
+            localStorage.setItem('theme', currentTheme);
+            applyTheme();
+        }
+
+        function applyTheme() {
+            if (currentTheme === 'dark') {
+                document.body.classList.add('dark');
+                document.body.classList.add('bg-gray-900');
+                document.body.classList.remove('bg-gray-50');
+                // Apply dark theme to all relevant elements
+                document.querySelectorAll('.bg-white').forEach(el => {
+                    el.classList.add('dark:bg-gray-800');
+                });
+                document.querySelectorAll('.text-gray-800').forEach(el => {
+                    el.classList.add('dark:text-gray-200');
+                });
+                document.querySelectorAll('.text-gray-600').forEach(el => {
+                    el.classList.add('dark:text-gray-300');
+                });
+                document.querySelectorAll('.text-gray-500').forEach(el => {
+                    el.classList.add('dark:text-gray-400');
+                });
+                document.querySelectorAll('.bg-gray-50').forEach(el => {
+                    el.classList.add('dark:bg-gray-700');
+                });
+                document.querySelectorAll('.bg-gray-100').forEach(el => {
+                    el.classList.add('dark:bg-gray-700');
+                });
+                document.querySelectorAll('.divide-gray-200').forEach(el => {
+                    el.classList.add('dark:divide-gray-700');
+                });
+            } else {
+                document.body.classList.remove('dark');
+                document.body.classList.remove('bg-gray-900');
+                document.body.classList.add('bg-gray-50');
+                // Remove dark theme classes
+                document.querySelectorAll('.dark\\:bg-gray-800').forEach(el => {
+                    el.classList.remove('dark:bg-gray-800');
+                });
+                document.querySelectorAll('.dark\\:text-gray-200').forEach(el => {
+                    el.classList.remove('dark:text-gray-200');
+                });
+                document.querySelectorAll('.dark\\:text-gray-300').forEach(el => {
+                    el.classList.remove('dark:text-gray-300');
+                });
+                document.querySelectorAll('.dark\\:text-gray-400').forEach(el => {
+                    el.classList.remove('dark:text-gray-400');
+                });
+                document.querySelectorAll('.dark\\:bg-gray-700').forEach(el => {
+                    el.classList.remove('dark:bg-gray-700');
+                });
+                document.querySelectorAll('.dark\\:divide-gray-700').forEach(el => {
+                    el.classList.remove('dark:divide-gray-700');
+                });
+            }
+        }
+
+        // Language functionality
+        function handleLanguageChange() {
+            currentLanguage = languageSelector.value;
+            localStorage.setItem('language', currentLanguage);
+            updateLanguage();
+            renderItems();
+            updateStats();
+        }
+
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('language', currentLanguage);
+            languageSelector.value = currentLanguage;
+            updateLanguage();
+        }
+
+        function updateLanguage() {
+            const trans = translations[currentLanguage];
+            
+            // Update login page
+            document.getElementById('loginSubtitle').textContent = trans.loginSubtitle;
+            document.getElementById('usernameLabel').textContent = trans.usernameLabel;
+            document.getElementById('passwordLabel').textContent = trans.passwordLabel;
+            document.getElementById('loginButton').textContent = trans.loginButton;
+            
+            // Update main app if visible
+            if (!mainApp.classList.contains('hidden')) {
+                document.getElementById('inventorySubtitle').textContent = trans.inventorySubtitle;
+                document.getElementById('totalItemsText').textContent = trans.totalItemsText;
+                document.getElementById('availableItemsText').textContent = trans.availableItemsText;
+                document.getElementById('outOfStockItemsText').textContent = trans.outOfStockItemsText;
+                document.getElementById('addItemText').textContent = trans.addItemText;
+                document.getElementById('itemNameHeader').textContent = trans.itemNameHeader;
+                document.getElementById('categoryHeader').textContent = trans.categoryHeader;
+                document.getElementById('stockHeader').textContent = trans.stockHeader;
+                document.getElementById('locationHeader').textContent = trans.locationHeader;
+                document.getElementById('statusHeader').textContent = trans.statusHeader;
+                document.getElementById('actionsHeader').textContent = trans.actionsHeader;
+                document.getElementById('loadingText').textContent = trans.loadingText;
+                document.getElementById('itemNameLabel').textContent = trans.itemNameLabel;
+                document.getElementById('itemCategoryLabel').textContent = trans.itemCategoryLabel;
+                document.getElementById('selectCategoryText').textContent = trans.selectCategoryText;
+                document.getElementById('electronicsText').textContent = trans.electronicsText;
+                document.getElementById('equipmentText').textContent = trans.equipmentText;
+                document.getElementById('rawMaterialText').textContent = trans.rawMaterialText;
+                document.getElementById('furnitureText').textContent = trans.furnitureText;
+                document.getElementById('otherText').textContent = trans.otherText;
+                document.getElementById('itemQuantityLabel').textContent = trans.itemQuantityLabel;
+                document.getElementById('itemLocationLabel').textContent = trans.itemLocationLabel;
+                document.getElementById('selectLocationText').textContent = trans.selectLocationText;
+                document.getElementById('rackA1Text').textContent = trans.rackA1Text;
+                document.getElementById('rackA2Text').textContent = trans.rackA2Text;
+                document.getElementById('rackB1Text').textContent = trans.rackB1Text;
+                document.getElementById('rackB2Text').textContent = trans.rackB2Text;
+                document.getElementById('floor1Text').textContent = trans.floor1Text;
+                document.getElementById('floor2Text').textContent = trans.floor2Text;
+                document.getElementById('itemDescriptionLabel').textContent = trans.itemDescriptionLabel;
+                document.getElementById('cancelText').textContent = trans.cancelText;
+                document.getElementById('saveText').textContent = trans.saveText;
+                document.getElementById('deleteConfirmTitle').textContent = trans.deleteConfirmTitle;
+                document.getElementById('deleteConfirmText').textContent = trans.deleteConfirmText;
+                document.getElementById('cancelDeleteText').textContent = trans.cancelDeleteText;
+                document.getElementById('confirmDeleteText').textContent = trans.confirmDeleteText;
+                document.getElementById('lightOption').textContent = trans.lightOption;
+                document.getElementById('darkOption').textContent = trans.darkOption;
+                
+                // Update search placeholder
+                searchInput.placeholder = currentLanguage === 'id' ? 'Cari barang...' : '搜索商品...';
+                
+                // Update modal title
+                if (document.getElementById('itemId').value) {
+                    modalTitle.textContent = currentLanguage === 'id' ? 'Edit Barang' : '编辑商品';
+                } else {
+                    modalTitle.textContent = currentLanguage === 'id' ? 'Tambah Barang Baru' : '添加新商品';
+                }
+            }
+        }
+
+        // Load items from API
+        async function loadItemsFromAPI() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/items`);
+                if (response.ok) {
+                    const apiItems = await response.json();
+                    // Convert API items to match our existing format
+                    items = apiItems.map(item => ({
+                        id: item._id,
+                        name: item.name,
+                        category: item.category,
+                        quantity: item.quantity,
+                        location: item.location,
+                        description: item.description || '',
+                        lastUpdated: item.lastUpdated
+                    }));
+                    renderItems();
+                    updateStats();
+                } else {
+                    console.error('Failed to load items from API');
+                    // Show error in UI
+                    itemsTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="px-6 py-4 text-center text-red-500">
+                                ${currentLanguage === 'id' ? 'Gagal memuat data barang' : '加载商品数据失败'}
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading items from API:', error);
+                // Show error in UI
+                itemsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-red-500">
+                            ${currentLanguage === 'id' ? 'Kesalahan koneksi ke server' : '服务器连接错误'}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Render items to table
+        function renderItems(filteredItems = null) {
+            itemsTableBody.innerHTML = '';
+            
+            const itemsToRender = filteredItems || items;
+            
+            if (itemsToRender.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                        ${currentLanguage === 'id' ? 'Tidak ada barang ditemukan' : '未找到商品'}
+                    </td>
+                `;
+                itemsTableBody.appendChild(row);
+                return;
+            }
+            
+            itemsToRender.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.classList.add('hover:bg-gray-50');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.category}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.quantity}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.location}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${item.quantity > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${item.quantity > 0 ? 
+                                (currentLanguage === 'id' ? 'Tersedia' : '可用') : 
+                                (currentLanguage === 'id' ? 'Habis' : '缺货')}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="editItem('${item.id}')" class="text-blue-600 hover:text-blue-900 mr-3">
+                            ${currentLanguage === 'id' ? 'Edit' : '编辑'}
+                        </button>
+                        <button onclick="showDeleteModal('${item.id}')" class="text-red-600 hover:text-red-900">
+                            ${currentLanguage === 'id' ? 'Hapus' : '删除'}
+                        </button>
+                    </td>
+                `;
+                itemsTableBody.appendChild(row);
+            });
+        }
+
+        // Update statistics
+        function updateStats() {
+            totalItemsEl.textContent = items.length;
+            
+            const availableItemsCount = items.filter(item => item.quantity > 0).length;
+            availableItemsEl.textContent = availableItemsCount;
+            
+            const outOfStockItemsCount = items.filter(item => item.quantity === 0).length;
+            outOfStockItemsEl.textContent = outOfStockItemsCount;
+        }
+
+        // Search functionality
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            if (searchTerm === '') {
+                renderItems();
+                updateStats();
+                return;
+            }
+            
+            const filteredItems = items.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.category.toLowerCase().includes(searchTerm) ||
+                item.location.toLowerCase().includes(searchTerm)
+            );
+            
+            renderItems(filteredItems);
+        });
+
+        // Add item functionality
+        addItemBtn.addEventListener('click', () => {
+            // Reset form
+            itemForm.reset();
+            document.getElementById('itemId').value = '';
+            modalTitle.textContent = currentLanguage === 'id' ? 'Tambah Barang Baru' : '添加新商品';
+            itemModal.classList.remove('hidden');
+        });
+
+        // Edit item functionality
+        function editItem(id) {
+            const item = items.find(item => item.id == id);
+            if (!item) return;
+            
+            // Fill form with item data
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemCategory').value = item.category;
+            document.getElementById('itemQuantity').value = item.quantity;
+            document.getElementById('itemLocation').value = item.location;
+            document.getElementById('itemDescription').value = item.description || '';
+            
+            // Update modal title
+            modalTitle.textContent = currentLanguage === 'id' ? 'Edit Barang' : '编辑商品';
+            itemModal.classList.remove('hidden');
+        }
+
+        // Delete item functionality
+        function showDeleteModal(id) {
+            currentItemToDelete = id;
+            deleteModal.classList.remove('hidden');
+        }
+
+        function hideDeleteModal() {
+            deleteModal.classList.add('hidden');
+            currentItemToDelete = null;
+        }
+
+        // Confirm delete
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            if (currentItemToDelete === null) return;
+            
+            try {
+                // Delete item from API
+                const response = await fetch(`${API_BASE_URL}/items/${currentItemToDelete}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    // Remove item from local array
+                    items = items.filter(item => item.id != currentItemToDelete);
+                    
+                    // Update UI
+                    renderItems();
+                    updateStats();
+                    
+                    // Show success message
+                    showToast(currentLanguage === 'id' ? 'Barang berhasil dihapus' : '商品已成功删除');
+                } else {
+                    // Show error message
+                    showToast(currentLanguage === 'id' ? 'Gagal menghapus barang' : '删除商品失败');
+                }
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                // Show error message
+                showToast(currentLanguage === 'id' ? 'Kesalahan koneksi ke server' : '服务器连接错误');
+            }
+            
+            // Close modal
+            hideDeleteModal();
+        });
+
+        // Cancel delete
+        document.getElementById('cancelDeleteBtn').addEventListener('click', hideDeleteModal);
+
+        // Modal functionality
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+            itemModal.classList.add('hidden');
+        });
+
+        document.getElementById('cancelModalBtn').addEventListener('click', () => {
+            itemModal.classList.add('hidden');
+        });
+
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === itemModal) {
+                itemModal.classList.add('hidden');
+            }
+            if (e.target === deleteModal) {
+                deleteModal.classList.add('hidden');
+            }
+            if (e.target === toast) {
+                toast.classList.add('hidden');
+            }
+        });
+
+        // Form submission
+        itemForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form data
+            const id = document.getElementById('itemId').value;
+            const name = document.getElementById('itemName').value;
+            const category = document.getElementById('itemCategory').value;
+            const quantity = parseInt(document.getElementById('itemQuantity').value);
+            const location = document.getElementById('itemLocation').value;
+            const description = document.getElementById('itemDescription').value;
+            
+            // Validate required fields
+            if (!name || !category || isNaN(quantity) || !location) {
+                showToast(currentLanguage === 'id' ? 'Harap isi semua field yang wajib' : '请填写所有必填字段');
+                return;
+            }
+            
+            try {
+                if (id) {
+                    // Update existing item
+                    const response = await fetch(`${API_BASE_URL}/items/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name,
+                            category,
+                            quantity,
+                            location,
+                            description
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const updatedItem = await response.json();
+                        // Update item in local array
+                        const itemIndex = items.findIndex(item => item.id == id);
+                        if (itemIndex !== -1) {
+                            items[itemIndex] = {
+                                id: updatedItem._id,
+                                name: updatedItem.name,
+                                category: updatedItem.category,
+                                quantity: updatedItem.quantity,
+                                location: updatedItem.location,
+                                description: updatedItem.description || '',
+                                lastUpdated: updatedItem.lastUpdated
+                            };
+                        }
+                        showToast(currentLanguage === 'id' ? 'Barang berhasil diperbarui' : '商品已成功更新');
+                    } else {
+                        showToast(currentLanguage === 'id' ? 'Gagal memperbarui barang' : '更新商品失败');
+                        return;
+                    }
+                } else {
+                    // Add new item
+                    const response = await fetch(`${API_BASE_URL}/items`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name,
+                            category,
+                            quantity,
+                            location,
+                            description
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const newItem = await response.json();
+                        // Add new item to local array
+                        items.push({
+                            id: newItem._id,
+                            name: newItem.name,
+                            category: newItem.category,
+                            quantity: newItem.quantity,
+                            location: newItem.location,
+                            description: newItem.description || '',
+                            lastUpdated: newItem.lastUpdated
+                        });
+                        showToast(currentLanguage === 'id' ? 'Barang berhasil ditambahkan' : '商品已成功添加');
+                    } else {
+                        showToast(currentLanguage === 'id' ? 'Gagal menambahkan barang' : '添加商品失败');
+                        return;
+                    }
+                }
+                
+                // Update UI
+                renderItems();
+                updateStats();
+                
+                // Close modal
+                itemModal.classList.add('hidden');
+            } catch (error) {
+                console.error('Error saving item:', error);
+                showToast(currentLanguage === 'id' ? 'Kesalahan koneksi ke server' : '服务器连接错误');
+            }
+        });
+
+        // Toast notification
+        function showToast(message) {
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Close toast
+        closeToastBtn.addEventListener('click', () => {
+            toast.classList.add('hidden');
+        });
+    </script>
+</body>
+</html>
